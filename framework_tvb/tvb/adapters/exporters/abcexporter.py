@@ -57,6 +57,7 @@ class ABCExporter(metaclass=ABCMeta):
     This should provide common functionality for all TVB exporters.
     """
     OPERATION_FOLDER_PREFIX = "Operation_"
+    LINKS = "Links"
 
     @abstractmethod
     def get_supported_types(self):
@@ -198,8 +199,7 @@ class ABCExporter(metaclass=ABCMeta):
 
                     # Create folder for references if it's not created already
                     if not references_folder_path:
-                        reference_folder_name = os.path.basename(os.path.dirname(ref_data_path))
-                        references_folder_path = os.path.join(export_folder, reference_folder_name)
+                        references_folder_path = os.path.join(export_folder, self.LINKS)
                         if not os.path.exists(references_folder_path):
                             os.makedirs(references_folder_path)
                             temp_export_folders.append(references_folder_path)
