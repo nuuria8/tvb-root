@@ -36,6 +36,7 @@ import os
 import shutil
 import zipfile
 
+from tvb.basic.profile import TvbProfile
 from tvb.core.adapters.abcuploader import ABCUploader, ABCUploaderForm
 from tvb.core.adapters.exceptions import LaunchException
 from tvb.core.entities.file.files_helper import FilesHelper
@@ -114,7 +115,7 @@ class TVBImporter(ABCUploader):
             current_op = dao.get_operation_by_id(self.operation_id)
             if zipfile.is_zipfile(view_model.data_file):
                 # Creates a new TMP folder where to extract data
-                tmp_folder = os.path.join(self.storage_path, "tmp_import")
+                tmp_folder = os.path.join(TvbProfile.current.TVB_TEMP_FOLDER, "tmp_import")
                 FilesHelper().unpack_zip(view_model.data_file, tmp_folder)
                 is_group = False
                 linked_group_op_id = None
