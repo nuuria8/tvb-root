@@ -40,8 +40,8 @@ import json
 import os
 import sys
 import uuid
-import numpy
 
+import numpy
 from tvb.adapters.simulator.simulator_adapter import SimulatorAdapter, CortexViewModel
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.neotraits.api import Range
@@ -139,6 +139,16 @@ def _migrate_connectivity(**kwargs):
     storage_interface = kwargs['storage_interface']
     input_file = kwargs['input_file']
     _bytes_ds_to_string_ds(storage_interface, 'region_labels', input_file)
+
+    try:
+        storage_manager.get_data('hemispheres')
+    except MissingDataSetException:
+        # In case the Connectivity file does not hold a hemispheres dataset, write one by splitting regions in half
+        all_regions = root_metadata['number_of_regions']
+        right_regions = all_regions / 2
+        left_regions = all_regions - right_regions
+        hemispheres = int(right_regions) * [True] + int(left_regions) * [False]
+        storage_manager.store_data('hemispheres', numpy.array(hemispheres))
 
     for mt in extra_metadata:
         try:
