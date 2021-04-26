@@ -38,6 +38,7 @@ import time
 from tvb.core.entities.file.data_encryption_handler import encryption_handler, FoldersQueueConsumer, \
     DataEncryptionHandler
 from tvb.core.services.backend_clients.standalone_client import StandAloneClient
+from tvb.interfaces.web.controllers.kube_controller import KubeController
 
 STARTUP_TIC = time.time()
 
@@ -156,6 +157,7 @@ def init_cherrypy(arguments=None):
     cherrypy.tree.mount(LocalConnectivityController(), "/spatial/localconnectivity/", config=CONFIGUER)
     cherrypy.tree.mount(NoiseConfigurationController(), "/burst/noise/", config=CONFIGUER)
     cherrypy.tree.mount(HPCController(), "/hpc/", config=CONFIGUER)
+    cherrypy.tree.mount(KubeController(), "/kube/", config=CONFIGUER)
 
     cherrypy.config.update(CONFIGUER)
 
