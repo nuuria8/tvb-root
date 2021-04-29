@@ -50,10 +50,7 @@ from tvb.basic.profile import TvbProfile
 from tvb.core.entities.file.files_update_manager import FilesUpdateManager
 from tvb.core.services.authorization import AuthorizationManager
 from tvb.core.entities.file.data_encryption_handler import encryption_handler
-from tvb.core.services.backend_clients.standalone_client import StandAloneClient, LOCKS_QUEUE
-from tvb.core.services.cache_service import cache
 from tvb.core.services.exceptions import UsernameException
-from tvb.core.services.project_service import ProjectService
 from tvb.core.services.texture_to_json import color_texture_to_list
 from tvb.core.services.user_service import KEY_AUTH_TOKEN, USERS_PAGE_SIZE
 from tvb.core.services.user_service import UserService, KEY_PASSWORD, KEY_EMAIL, KEY_USERNAME, KEY_COMMENT
