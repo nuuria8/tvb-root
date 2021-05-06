@@ -176,8 +176,17 @@ class StorageInterface:
     def initialize_tvb_zip(self, dest_path, mode="r"):
         self.tvb_zip = TvbZip(dest_path, mode)
 
-    def write_zip_folder(self, folder, archive_path_prefix="", exclude=None):
+    def write_zip_folder(self, folder, archive_path_prefix="", exclude=[]):
         self.tvb_zip.write_zip_folder(folder, archive_path_prefix, exclude)
+
+    def write_zip_folders(self, folders, archive_path_prefix="", exclude=[]):
+        self.tvb_zip.write_zip_folders(folders, archive_path_prefix, exclude)
+
+    def unpack_zip(self, uploaded_zip, folder_path):
+        self.initialize_tvb_zip(uploaded_zip)
+        unpacked_folder = self.tvb_zip.unpack_zip(folder_path)
+        self.close_tvb_zip()
+        return unpacked_folder
 
     def namelist(self, dest_path, mode="r"):
         self.initialize_tvb_zip(dest_path, mode)
@@ -356,44 +365,7 @@ class StorageInterface:
     def join(self):
         self.folders_queue_consumer.join()
 
-    # Generic methods start here
-
-    def ends_with_tvb_file_extension(self, file):
-        return file.endswith(self.TVB_FILE_EXTENSION)
-
-    def ends_with_tvb_storage_file_extension(self, file):
-        return file.endswith(self.TVB_STORAGE_FILE_EXTENSION)
-
-    def rename_project(self, current_proj_name, new_name):
-        project_folder = self.get_project_folder(current_proj_name)
-        if self.encryption_enabled() and not self.is_in_usage(project_folder):
-            raise RenameWhileSyncEncryptingException(
-                "A project can not be renamed while sync encryption operations are running")
-        self.rename_project_structure(current_proj_name, new_name)
-        encrypted_path = self.compute_encrypted_folder_path(project_folder)
-        if os.path.exists(encrypted_path):
-            new_encrypted_path = self.compute_encrypted_folder_path(
-                self.get_project_folder(new_name))
-            os.rename(encrypted_path, new_encrypted_path)
-
-    def remove_project(self, project):
-        project_folder = self.get_project_folder(project.name)
-        self.remove_project_structure(project.name)
-        encrypted_path = self.compute_encrypted_folder_path(project_folder)
-        if os.path.exists(encrypted_path):
-            self.remove_folder(encrypted_path)
-        if os.path.exists(self.project_key_path(project.id)):
-            os.remove(self.project_key_path(project.id))
-
-    def move_datatype_with_sync(self, to_project, to_project_path, new_op_id, full_path, vm_full_path):
-        self.set_project_active(to_project)
-        self.sync_folders(to_project_path)
-
-        self.move_datatype(to_project.name, str(new_op_id), full_path)
-        self.move_datatype(to_project.name, str(new_op_id), vm_full_path)
-
-        self.sync_folders(to_project_path)
-        self.set_project_inactive(to_project)
+    # Export related methods start here #
 
     def export_datatypes(self, paths, operation):
         op_folder = self.get_operation_folder(operation.project.name, operation.id)
@@ -406,6 +378,15 @@ class StorageInterface:
 
         # remove these files, since we only want them in export archive
         self.remove_folder(op_folder)
+
+    def export_linked_datatypes(self, project_name, op_id, linked_paths):
+        op_folder = self.files_helper.get_operation_folder(project_name, op_id)
+        op_folder_name = os.path.basename(op_folder)
+
+        # add linked datatypes to archive in the import operation
+        for pth in linked_paths:
+            zip_pth = op_folder_name + '/' + os.path.basename(pth)
+            self.write_zip_arc(pth, zip_pth)
 
     def build_data_export_folder(self, data, export_folder):
         now = datetime.now()
@@ -467,3 +448,50 @@ class StorageInterface:
         self.close_tvb_zip()
 
         return result_path
+
+    # Generic methods start here
+
+    def get_h5_by_gid(self, project_name, op_id, dt_gid):
+        op_path = self.files_helper.get_operation_folder(project_name, op_id)
+
+        for f in os.listdir(op_path):
+            fp = os.path.join(op_path, f)
+            if dt_gid in f and os.path.isfile(fp):
+                return fp
+
+    def ends_with_tvb_file_extension(self, file):
+        return file.endswith(self.TVB_FILE_EXTENSION)
+
+    def ends_with_tvb_storage_file_extension(self, file):
+        return file.endswith(self.TVB_STORAGE_FILE_EXTENSION)
+
+    def rename_project(self, current_proj_name, new_name):
+        project_folder = self.get_project_folder(current_proj_name)
+        if self.encryption_enabled() and not self.is_in_usage(project_folder):
+            raise RenameWhileSyncEncryptingException(
+                "A project can not be renamed while sync encryption operations are running")
+        self.rename_project_structure(current_proj_name, new_name)
+        encrypted_path = self.compute_encrypted_folder_path(project_folder)
+        if os.path.exists(encrypted_path):
+            new_encrypted_path = self.compute_encrypted_folder_path(
+                self.get_project_folder(new_name))
+            os.rename(encrypted_path, new_encrypted_path)
+
+    def remove_project(self, project):
+        project_folder = self.get_project_folder(project.name)
+        self.remove_project_structure(project.name)
+        encrypted_path = self.compute_encrypted_folder_path(project_folder)
+        if os.path.exists(encrypted_path):
+            self.remove_folder(encrypted_path)
+        if os.path.exists(self.project_key_path(project.id)):
+            os.remove(self.project_key_path(project.id))
+
+    def move_datatype_with_sync(self, to_project, to_project_path, new_op_id, full_path, vm_full_path):
+        self.set_project_active(to_project)
+        self.sync_folders(to_project_path)
+
+        self.move_datatype(to_project.name, str(new_op_id), full_path)
+        self.move_datatype(to_project.name, str(new_op_id), vm_full_path)
+
+        self.sync_folders(to_project_path)
+        self.set_project_inactive(to_project)

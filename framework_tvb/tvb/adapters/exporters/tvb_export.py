@@ -49,7 +49,7 @@ class TVBExporter(ABCExporter):
 
     def __init__(self):
         self.storage_interface = StorageInterface()
-    
+
     def get_supported_types(self):
         return [DataType]
     
@@ -66,13 +66,13 @@ class TVBExporter(ABCExporter):
          
         if self.is_data_a_group(data):
             all_datatypes = self._get_all_data_types_arr(data)
-            
+
             if all_datatypes is None or len(all_datatypes) == 0:
-                raise ExportException("Could not export a data type group with no data")    
-            
+                raise ExportException("Could not export a data type group with no data")
+
             zip_file = os.path.join(export_folder, download_file_name)
 
-            # Create ZIP archive    
+            # Create ZIP archive
             self.storage_interface.zip_folders(all_datatypes, project.name, zip_file, self.OPERATION_FOLDER_PREFIX)
                         
             return download_file_name, zip_file, True

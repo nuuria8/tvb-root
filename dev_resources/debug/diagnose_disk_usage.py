@@ -51,8 +51,8 @@ class DiagnoseDiskUsage(object):
             # This code is doing a tree traversal of the db.
             # The query on attribute access style fits better than aggregating queries.
             self.project = dao.session.query(Project).filter(Project.id == prj_id).one()
-            self.expected_files.add(self.storage_interface.get_project_meta_file_path(self.project.name))
-            root_path = self.storage_interface.get_project_folder(self.project)
+            self.expected_files.add(self.file_helper.get_project_meta_file_path(self.project.name))
+            root_path = self.file_helper.get_project_folder(self.project)
 
             print()
             print('Reporting disk for project {} in {}'.format(self.project.name, root_path))
@@ -111,7 +111,7 @@ class DiagnoseDiskUsage(object):
             if dt.type == 'DataTypeGroup':
                 # these have no h5
                 continue
-            op_pth = self.storage_interface.get_operation_folder(self.project.name, op.id)
+            op_pth = self.file_helper.get_operation_folder(self.project.name, op.id)
             dt_pth = self.get_h5_by_gid(op_pth, dt.gid)
 
             dt_actual_disk_size = self.get_file_kib_size(dt_pth)
