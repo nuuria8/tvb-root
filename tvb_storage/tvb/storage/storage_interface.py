@@ -36,6 +36,7 @@ All calls to methods from this module must be done through this class.
 
 from datetime import datetime
 import os
+import uuid
 
 from tvb.basic.logger.builder import get_logger
 from tvb.basic.profile import TvbProfile
@@ -420,6 +421,7 @@ class StorageInterface:
             to_be_exported_folders.append({'folder': project_folder,
                                            'archive_path_prefix': '', 'exclude': folders_to_exclude})
 
+    # H5 related methods start here #
         # Compute path and name of the zip file
         now = datetime.now()
         date_str = now.strftime("%Y-%m-%d_%H-%M")
@@ -458,6 +460,16 @@ class StorageInterface:
             fp = os.path.join(op_path, f)
             if dt_gid in f and os.path.isfile(fp):
                 return fp
+
+    def get_h5_filename(self, class_name, gid):
+        return self.H5_FILE_NAME_STRUCTURE.format(class_name, gid.hex)
+
+    def path_for(self, op_id, h5_file_class, gid, project_name, dt_class):
+        operation_dir = self.files_helper.get_operation_folder(project_name, op_id)
+        if isinstance(gid, str):
+            gid = uuid.UUID(gid)
+        fname = self.get_h5_filename(dt_class or h5_file_class.file_name_base(), gid)
+        return os.path.join(operation_dir, fname)
 
     def ends_with_tvb_file_extension(self, file):
         return file.endswith(self.TVB_FILE_EXTENSION)
