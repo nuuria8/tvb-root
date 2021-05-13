@@ -63,6 +63,9 @@ class StorageInterface:
 
     ZIP_FILE_EXTENSION = "zip"
 
+    H5_EXTENSION = '.h5'
+    H5_FILE_NAME_STRUCTURE = '{}_{}.h5'
+
     logger = get_logger(__name__)
 
     def __init__(self):
@@ -139,20 +142,6 @@ class StorageInterface:
     def get_allen_mouse_cache_folder(self, project_name):
         return self.get_allen_mouse_cache_folder(project_name)
 
-    def zip_folders(self, all_datatypes, project_name, zip_full_path, folder_prefix=""):
-        operation_folders = []
-        for data_type in all_datatypes:
-            operation_folder = self.get_operation_folder(project_name, data_type.fk_from_operation)
-            operation_folders.append(operation_folder)
-        FilesHelper.zip_folders(zip_full_path, operation_folders, folder_prefix)
-
-    @staticmethod
-    def zip_folder(result_name, folder_root):
-        FilesHelper.zip_folder(result_name, folder_root)
-
-    def unpack_zip(self, uploaded_zip, folder_path):
-        return self.files_helper.unpack_zip(uploaded_zip, folder_path)
-
     @staticmethod
     def copy_file(source, dest, dest_postfix=None, buffer_size=1024 * 1024):
         FilesHelper.copy_file(source, dest, dest_postfix, buffer_size)
@@ -180,8 +169,14 @@ class StorageInterface:
     def write_zip_folder(self, folder, archive_path_prefix="", exclude=[]):
         self.tvb_zip.write_zip_folder(folder, archive_path_prefix, exclude)
 
-    def write_zip_folders(self, folders, archive_path_prefix="", exclude=[]):
-        self.tvb_zip.write_zip_folders(folders, archive_path_prefix, exclude)
+    def write_zip_folders(self, all_datatypes, project_name, zip_full_path, folder_prefix="", exclude=[]):
+        self.initialize_tvb_zip(zip_full_path, "w")
+        operation_folders = []
+        for data_type in all_datatypes:
+            operation_folder = self.get_operation_folder(project_name, data_type.fk_from_operation)
+            operation_folders.append(operation_folder)
+        self.tvb_zip.write_zip_folders(operation_folders, folder_prefix, exclude)
+        self.close_tvb_zip()
 
     def unpack_zip(self, uploaded_zip, folder_path):
         self.initialize_tvb_zip(uploaded_zip)

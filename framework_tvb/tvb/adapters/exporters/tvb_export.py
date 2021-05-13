@@ -73,7 +73,7 @@ class TVBExporter(ABCExporter):
             zip_file = os.path.join(export_folder, download_file_name)
 
             # Create ZIP archive
-            self.storage_interface.zip_folders(all_datatypes, project.name, zip_file, self.OPERATION_FOLDER_PREFIX)
+            self.storage_interface.write_zip_folders(all_datatypes, project.name, zip_file, self.OPERATION_FOLDER_PREFIX)
                         
             return download_file_name, zip_file, True
 
